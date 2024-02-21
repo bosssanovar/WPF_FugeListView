@@ -15,7 +15,14 @@ namespace WpfApp1
         {
             for (int i = 0; i < size; i++)
             {
-                Values.Add(new ReactivePropertySlim<bool>(false));
+                if (i % 5 == 0)
+                {
+                    Values.Add(new ReactivePropertySlim<bool>(true));
+                }
+                else
+                {
+                    Values.Add(new ReactivePropertySlim<bool>(false));
+                }
             }
         }
 

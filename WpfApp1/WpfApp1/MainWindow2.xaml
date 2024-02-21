@@ -6,28 +6,33 @@
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
         Title="MainWindow" Height="500" Width="600" d:Width="600"
-        DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}">
+        DataContext="{Binding RelativeSource={RelativeSource Mode=Self}}"
+        WindowState="Maximized">
     <Grid Margin="5">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="DataGrid表示初期化中..." FontSize="20"/>
+        <TextBlock Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Text="表示初期化中..." FontSize="20"/>
 
-        <DataGrid x:Name="grid" Grid.Row="1" Margin="5" AutoGenerateColumns="False" Visibility="Collapsed"
-                  EnableColumnVirtualization="True" EnableRowVirtualization="True"
-                  VirtualizingPanel.IsVirtualizing="True" ScrollViewer.CanContentScroll="True" VirtualizingPanel.VirtualizationMode="Recycling"
-                  ItemsSource="{Binding Items}" RowHeight="18" HeadersVisibility="None"
-                  SelectionMode="Extended" SelectionUnit="Cell"
-                  CanUserAddRows="False" CanUserDeleteRows="False" CanUserReorderColumns="False" CanUserResizeColumns="False"
-                  CanUserResizeRows="False" CanUserSortColumns="False">
-            <DataGrid.CellStyle>
-                <Style TargetType="DataGridCell">
-                    <EventSetter Event="PreviewMouseLeftButtonUp" Handler="DataGridCell_MouseLeftButtonUp"/>
-                    <EventSetter Event="PreviewMouseRightButtonDown" Handler="DataGridCell_PreviewMouseRightButtonDown"/>
-                </Style>
-            </DataGrid.CellStyle>
-        </DataGrid>
+        <ListView x:Name="listView" Grid.Row="1" Margin="5" Visibility="Collapsed" ItemsSource="{Binding Items}"
+                  VirtualizingPanel.IsVirtualizing="True" VirtualizingPanel.ScrollUnit="Pixel"
+                  ScrollViewer.CanContentScroll="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  MaxHeight="1200" MaxWidth="2000"
+                  SelectionMode="Multiple">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel Orientation="Vertical"
+                                            VirtualizingPanel.ScrollUnit="Pixel" VirtualizingPanel.IsVirtualizing="True"
+                                            VirtualizingPanel.VirtualizationMode="Recycling" ScrollViewer.CanContentScroll="True"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.View>
+                <GridView>
+                </GridView>
+            </ListView.View>
+        </ListView>
     </Grid>
 </Window>

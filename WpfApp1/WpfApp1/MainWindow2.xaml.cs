@@ -1,6 +1,7 @@
 ﻿using Reactive.Bindings;
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Windows;
@@ -28,31 +29,24 @@ namespace WpfApp1
         public MainWindow2()
         {
             InitializeComponent();
-
-            InitData(InitCulumnCount);
         }
 
         protected override void OnContentRendered(EventArgs e)
         {
             base.OnContentRendered(e);
 
-            Cursor = Cursors.Wait;
+            InitColumn(InitCulumnCount);
 
-            InitColumns(InitCulumnCount);
+            InitItems(InitCulumnCount);
 
-            grid.Visibility = Visibility.Visible;
-
-            Dispatcher.InvokeAsync(new Action(() =>
-            {
-                Cursor = null;
-            }), System.Windows.Threading.DispatcherPriority.ApplicationIdle);
-
-            App.Current.MainWindow = this;
+            listView.Visibility = Visibility.Visible;
         }
 
-        private void InitColumns(int count)
+        private void InitColumn(int count)
         {
-            grid.Columns.Clear();
+            var gridView = listView.View as GridView;
+            if (gridView == null) return;
+            gridView.Columns.Clear();
 
             var converter = new BooleanToVisibilityConverter();
             for (int columnIndex = 0; columnIndex < count; ++columnIndex)
@@ -69,104 +63,32 @@ namespace WpfApp1
                 var dataTemplate = new DataTemplate();
                 dataTemplate.VisualTree = factory;
 
-                var column = new DataGridTemplateColumn();
+                var column = new GridViewColumn();
                 column.CellTemplate = dataTemplate;
+                column.Width = 38;
 
-                grid.Columns.Add(column);
-            }
-        }
-
-        private void InitData(int count)
-        {
-            // バインドを切断
-            Binding b = new Binding("Items")
-            {
-                Source = null
-            };
-            grid.SetBinding(DataGrid.ItemsSourceProperty, b);
-
-            var list = new List<Detail>();
-            for (int i = 0; i < count; i++)
-            {
-                list.Add(new Detail(InitCulumnCount));
+                gridView.Columns.Add(column);
             }
 
-            Items = new ObservableCollection<Detail>(list);
+            var itemContainerStyle = new Style(typeof(ListViewItem));
+            var horizontalContentAlignmentSetter = new Setter(HorizontalContentAlignmentProperty, HorizontalAlignment.Center);
+            itemContainerStyle.Setters.Add(horizontalContentAlignmentSetter);
 
-            b = new Binding("Items")
-            {
-                Source = this
-            };
-            grid.SetBinding(DataGrid.ItemsSourceProperty, b);
+            listView.ItemContainerStyle = itemContainerStyle;
         }
 
-        private void DataGridCell_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private void InitItems(int initCulumnCount)
         {
-            if (grid.SelectedCells.Count == 1)
-            {
-                var columnIndex = DataGridHelper.GetSelectedColumnIndex(grid);
-                var rowIndex = DataGridHelper.GetSelectedRowIndex(grid);
+            listView.BeginInit();
 
-                Items[rowIndex].Invert(columnIndex);
+            Items.Clear();
+
+            for (int i = 0; i < initCulumnCount; i++)
+            {
+                Items.Add(new Detail(initCulumnCount));
             }
-        }
 
-        private void DataGridCell_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (grid.SelectedCells.Count <= 1)
-            {
-                grid.Focus();
-                grid.SelectedCells.Clear();
-
-                DataGridCell? targetCell = DataGridHelper.GetCellAtMousePosition(sender, e);
-
-                if (targetCell is null) return;
-                grid.CurrentCell = new DataGridCellInfo(targetCell);
-                grid.SelectedCells.Add(grid.CurrentCell);
-
-                ShowContextMenu(false);
-            }
-            else
-            {
-                ShowContextMenu(true);
-            }
-        }
-
-        private void ShowContextMenu(bool isSelectArea)
-        {
-            ContextMenu contextMenu = new ContextMenu();
-
-            MenuItem menuItem = new MenuItem();
-            menuItem.Header = "行全部設定";
-            menuItem.Click += new RoutedEventHandler(AllOn);
-            menuItem.IsEnabled = !isSelectArea;
-            contextMenu.Items.Add(menuItem);
-
-            Separator separator = new Separator();
-            contextMenu.Items.Add(separator);
-
-            menuItem = new MenuItem();
-            menuItem.Header = "選択エリア設定";
-            menuItem.Click += new RoutedEventHandler(AreaOn);
-            menuItem.IsEnabled = isSelectArea;
-            contextMenu.Items.Add(menuItem);
-
-            contextMenu.IsOpen = true;
-        }
-
-        private void AllOn(object sender, RoutedEventArgs e)
-        {
-            var rowIndex = DataGridHelper.GetSelectedRowIndex(grid);
-            Items[rowIndex].SetAll(true);
-        }
-
-        private void AreaOn(object sender, RoutedEventArgs e)
-        {
-            var indexes = DataGridHelper.GetSelectedCellsIndex(grid);
-            foreach (var index in indexes)
-            {
-                Items[index.RowIndex].SetOn(index.ColumnIndex);
-            }
+            listView.EndInit();
         }
     }
 }
